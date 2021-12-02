@@ -97,33 +97,34 @@ def create_all_symbol(img,shape,nb_symbol,symbol_size,symbol_color,span,mu,sig,m
             # Adding symbol
             create_symbol(draw,shape,(x,y),symbol_format,span)
 
-def deformation(p , c, radius):
+def spherize_coordinates(p , c, radius, curvature):
+    # https://lms.fun-mooc.fr/asset-v1:ulb+44013+session03+type@asset+block/explication-deformation.pdf
+
+    # Coordinates
     x, y, z = p
     x_,y_,z_= p
     xc, yc, zc = int(c[0]), int(c[1]), int(c[2])
 
-    x_vec = x - xc
-    y_vec = y - yc
-    z_vec = z - zc
+    # relative coordinates
+    x_minus_xc = x - xc
+    y_minus_yc = y - yc
+    z_minus_zc = z - zc
 
-    # x = r * sin(theta) * cos(phi)
-    # y = r * sin(theta) * sin(phi)
-    # z = r * cos(theta)
+    # Apparent radius
+    #Ra = math.sqrt( radius**2 - z_minus_zc**2 )
 
-    # r = sqrt( x^2 + y^2 + z^2 )
-    # theta = acos( z / r )
-    # phi = atan2 ( y / x )
+    # Norm radius
+    r = math.sqrt( x_minus_xc**2 + y_minus_yc**2 )
 
-    # Calc theta
-    projected_radius = math.sqrt( x_vec**2 + y_vec**2 )
-    sin_theta = projected_radius / radius
-    # sin_phi = y_vec / radius
-    # cos_phi = x_vec / radius
+    if 0 < r < radius:
+        #r_div_Ra = r / Ra
+        r_div_Ra = r / radius
+        #r_ = radius * math.sin( r_div_Ra * math.acos( abs(z_minus_zc) / radius ) )
+        r_ = radius * math.sin( r_div_Ra * (math.pi/2) )
 
-    if projected_radius < radius:
-        # x = r * sin_theta * cos_phi
-        x_ = xc + sin_theta * x_vec
-        y_ = yc + sin_theta * y_vec
+        # New coordinates
+        x_ = xc + (r / r_)**curvature * x_minus_xc
+        y_ = yc + (r / r_)**curvature * y_minus_yc
 
     return x_,y_,z_
 
@@ -147,7 +148,7 @@ def tuple_int(t):
         ret_tuple += (int(t[i]),)
     return ret_tuple
 
-def linear_interpolation(x,y, x_,y_, original_pixels, new_pixels):
+def linear_interpolation(x,y, x_,y_, img_size, original_pixels, new_pixels):
     # https://fr.wikipedia.org/wiki/Interpolation_lin%C3%A9aire
     # f(x) = y1 * (x2-x)/(x2-x1) + y2 * (x-x1)/(x2-x1)
     #
@@ -161,24 +162,36 @@ def linear_interpolation(x,y, x_,y_, original_pixels, new_pixels):
     y_int   = int(y_)
     y_frac  = y_ - y_int
 
+    # Edge management
+    if x_int < img_size[0]-1:
+        x_int_add_1 = x_int+1
+    else:
+        x_int = img_size[0]-1
+        x_int_add_1 = img_size[0]-1
+    if y_int < img_size[1]-1:
+        y_int_add_1 = y_int+1
+    else:
+        y_int = img_size[1]-1
+        y_int_add_1 = y_int
+
     if x_frac == 0:
         # y interpolation
         y1 = original_pixels[x_int, y_int] 
-        y2 = original_pixels[x_int, y_int+1] 
+        y2 = original_pixels[x_int, y_int_add_1] 
         y1 = tuple(map(lambda value: value * (1-y_frac), y1))
         y2 = tuple(map(lambda value: value * y_frac,     y2))
 
     else:
         # x interpolation
         y1 = original_pixels[x_int,  y_int] 
-        y2 = original_pixels[x_int+1,y_int] 
+        y2 = original_pixels[x_int_add_1,y_int] 
         y1 = tuple(map(lambda value: value * (1-x_frac), y1))
         y2 = tuple(map(lambda value: value * x_frac,     y2))
 
     new_pixels[x,y] = tuple_int(tuple_add(y1,y2))
 
 
-def bilinear_interpolation(x,y, x_,y_, original_pixels, new_pixels):
+def bilinear_interpolation(x,y, x_,y_, img_size, original_pixels, new_pixels):
     # https://fr.wikipedia.org/wiki/Interpolation_bilin%C3%A9aire
     #
     #   (x1,y2)         (x2,y2)
@@ -205,19 +218,31 @@ def bilinear_interpolation(x,y, x_,y_, original_pixels, new_pixels):
     y_int   = int(y_)
     y_frac  = y_ - y_int
 
+    # Edge management
+    if x_int < img_size[0]-1:
+        x_int_add_1 = x_int+1
+    else:
+        x_int = img_size[0]-1
+        x_int_add_1 = img_size[0]-1
+    if y_int < img_size[1]-1:
+        y_int_add_1 = y_int+1
+    else:
+        y_int = img_size[1]-1
+        y_int_add_1 = y_int
+
     # No treatement
     if x_frac == 0 and y_frac == 0:
         return None
 
     # linear_interpolation
     if x_frac == 0 or y_frac == 0:
-        linear_interpolation(x,y,x_,y_,original_pixels, new_pixels)
+        linear_interpolation(x,y,x_,y_,img_size,original_pixels, new_pixels)
 
     else:
         f11 = original_pixels[x_int,y_int]
-        f12 = original_pixels[x_int,y_int+1]
-        f21 = original_pixels[x_int+1,y_int]
-        f22 = original_pixels[x_int+1,y_int+1]
+        f12 = original_pixels[x_int,y_int_add_1]
+        f21 = original_pixels[x_int_add_1,y_int]
+        f22 = original_pixels[x_int_add_1,y_int_add_1]
 
         tmp1 = tuple(map(lambda value: value * x_frac, tuple_sub(f21,f11)))
         tmp2 = tuple(map(lambda value: value * y_frac, tuple_sub(f12,f11)))

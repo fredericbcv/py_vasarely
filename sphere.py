@@ -6,7 +6,8 @@ import inspect
 #########################
 # FUNCTIONS
 #########################
-def sphere_engine(img_obj,img_size):
+def sphere_engine(img_obj,img_size, pc, radius, curvature=1):
+    # 1 < curvature < N
 
     # Copy input img
     new_img = img_obj.copy()
@@ -19,30 +20,22 @@ def sphere_engine(img_obj,img_size):
     new_pixels      = new_img.load()
 
     for y in range(img_size[1]):
-        #img_matrix.append( list(map(lambda x: deformation( (x,y,0), (100,100,0) , 50 )[:2], img_array)) )
 
         for x in range(img_size[0]):
             # Calculate new points
-            x_,y_,z_ = deformation( (x,y,0), (250,0,0) , 250 )
+            x_,y_,z_ = spherize_coordinates((x,y,0),pc,radius,curvature)
 
             # New pixel to calculate ? 
-            #if type(x_) == int and type(y_) == int:
-            #    continue
+            if type(x_) == int and type(y_) == int:
+                continue
 
             # Interpolation bilineaire
             if type(x_) != int and type(y_) != int:
-                bilinear_interpolation(x,y,x_,y_,original_pixels,new_pixels)
+                bilinear_interpolation(x,y,x_,y_,img_size,original_pixels,new_pixels)
 
             # Interpolation linaire
-            #else:
-            #    linear_interpolation(x,y,x_,y_,original_pixels,new_pixels)
-
-            # Calc new points
-            x_,y_,z_ = deformation( (x,y,0), (250,499,0) , 250 )
-
-            # Interpolation bilineaire
-            if type(x_) != int and type(y_) != int:
-                bilinear_interpolation(x,y,x_,y_,original_pixels,new_pixels)
+            else:
+                linear_interpolation(x,y,x_,y_,img_size,original_pixels,new_pixels)
 
     return new_img
 
@@ -84,6 +77,8 @@ bg_img.save('sphere.png')
 #########################
 # Sphere calc
 #########################
-new_img = sphere_engine(bg_img,img_size)
-new_img.save('sphered.png')
+new_img  = sphere_engine(bg_img, img_size,(250,0,0),  250, 2)
+new_img2 = sphere_engine(new_img,img_size,(250,499,0),250, 2)
+
+new_img2.save('sphered.png')
 
