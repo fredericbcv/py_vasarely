@@ -23,6 +23,7 @@ create_all_symbol(  overlay_img,\
                     0.0,\
                     mu,\
                     sig, \
+                    None, \
                     160, \
                     alpha_fct=False, \
                     color_fct=True, \
@@ -42,6 +43,7 @@ create_all_symbol(  overlay_img,\
                     0.05,\
                     mu,\
                     sig,\
+                    None, \
                     160, \
                     alpha_fct=True, \
                     inv_alpha=False, \
@@ -51,4 +53,4 @@ create_all_symbol(  overlay_img,\
 bg_img = Image.alpha_composite(bg_img,overlay_img)
 
 # Save image
-bg_img.save('vasa.png')
+bg_img.save('vasa1.png')

@@ -1,6 +1,7 @@
 #!python3
 from numpy import *
 from vasa_lib import *
+from interpolate import *
 import inspect 
 
 #########################
@@ -10,7 +11,7 @@ def sphere_engine(img_obj,img_size, pc, radius, curvature=1):
     # 1 < curvature < N
 
     # Copy input img
-    new_img = img_obj.copy()
+    new_img  = img_obj.copy()
     new_img.load()[0,0] = (0,0,0,255)
 
     # Create array
@@ -19,11 +20,13 @@ def sphere_engine(img_obj,img_size, pc, radius, curvature=1):
     original_pixels = img_obj.load()
     new_pixels      = new_img.load()
 
-    for y in range(img_size[1]):
+    spherized_coordinates = list()
 
+    for y in range(img_size[1]):
         for x in range(img_size[0]):
             # Calculate new points
             x_,y_,z_ = spherize_coordinates((x,y,0),pc,radius,curvature)
+            spherized_coordinates.append([x,y,x_,y_])
 
             # New pixel to calculate ? 
             if type(x_) == int and type(y_) == int:
@@ -46,29 +49,31 @@ def sphere_engine(img_obj,img_size, pc, radius, curvature=1):
 img_size = (500,500)
 
 # Create background img
-bg_img      = create_image(img_size,(0,39,48,255))
+bg_img      = create_image(img_size,(154,185,183,255))
 
 # Create rectangle
 overlay_img = create_image(img_size,(255,255,255,0))
-symbol_color = (0,255,115)
+symbol_color = (242,198,27)
+symbol_color2 = (5,26,104)
 
-symbol_size = 20
+symbol_size = 50
 nb_symbol = ( int(img_size[0]/symbol_size) , int(img_size[1]/symbol_size) )
 
 mu  = (nb_symbol[0]-1)/2
 sig = nb_symbol[0]/5
 
 create_all_symbol(  overlay_img,\
-                    'rectangle',\
+                    'cube',\
                     nb_symbol,\
                     symbol_size,\
                     symbol_color,\
-                    0.2,\
+                    0.0,\
                     mu,\
                     sig, \
+                    symbol_color2,\
                     160, \
                     alpha_fct=False, \
-                    color_fct=True, \
+                    color_fct=False, \
                     inv_color=True \
                     )
 bg_img = Image.alpha_composite(bg_img,overlay_img)
@@ -77,8 +82,12 @@ bg_img.save('sphere.png')
 #########################
 # Sphere calc
 #########################
-new_img  = sphere_engine(bg_img, img_size,(250,0,0),  250, 2)
-new_img2 = sphere_engine(new_img,img_size,(250,499,0),250, 2)
+new_img = bg_img
+#new_img = sphere_engine(new_img, img_size, (0,             0             ,0), img_size[0]/2 * 2**0.5, 1.5)
+#new_img = sphere_engine(new_img, img_size, (img_size[0]-1, 0             ,0), img_size[0]/2, 1.5)
+#new_img = sphere_engine(new_img, img_size, (img_size[0]-1, img_size[1]-1 ,0), img_size[0]/2 * 2**0.5, 1.5)
+#new_img = sphere_engine(new_img, img_size, (0,             img_size[1]-1 ,0), img_size[0]/2, 1.5)
+new_img = sphere_engine(new_img, img_size, (img_size[0]/2, img_size[1]/2 ,0), img_size[0]/2, 1)
 
-new_img2.save('sphered.png')
+new_img.save('sphere1_bilinear_interpol.png')
 
