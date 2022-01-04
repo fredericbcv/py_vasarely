@@ -45,7 +45,7 @@ On souhaite calculer la déformation d'une image suivant une sphère. Pour cela,
 Pour mieux comprendre les maths derrière, on peut raisonner d'abord en deux dimensions en suivant un des axe du plan et l'axe où on observe le plan. Le point x correspond à la position du pixel dans l'axe X que l'on souhaite déformer et le point x0 le centre de la sphère. Le segment formé par ses deux points est appelée r.
 
 <!-- [common] -->
-![](fig_01.png)
+![](fig/fig_01.png)
 
 <!-- [en-US] -->
 We deforms this segment r according to a circle and we calculate the segment projected on the axis x which we names r '.
@@ -60,7 +60,7 @@ sin(&theta;) = r' / rayon
 
 r' = rayon * sin(&theta;)
 
-![](fig_02.png)
+![](fig/fig_02.png)
 
 <!-- [en-US] -->
 The ratio r '/ r is proportional to the deformation of x' / x
@@ -69,7 +69,7 @@ The ratio r '/ r is proportional to the deformation of x' / x
 Le rapport r' / r est proportionnel à la déformation de x' / x 
 
 <!-- [common] -->
-![](fig_03.png)
+![](fig/fig_03.png)
 
 (x' - x0) / (x - x0) = r' / r
 

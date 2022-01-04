@@ -1,5 +1,5 @@
 #!python3
-import os
+import os, functools
 import numpy as np
 
 ################################
@@ -24,6 +24,24 @@ def tuple_int(t):
     for i in range(len(t)):
         ret_tuple += (int(t[i]),)
     return ret_tuple
+
+def tuple_round(t):
+    ret_tuple = tuple()
+    for i in range(len(t)):
+        ret_tuple += (round(t[i]),)
+    return ret_tuple
+
+def tuple_cast(t,min_val=0,max_val=255):
+    ret_tuple = tuple()
+    for i in range(len(t)):
+        if t[i] < min_val:
+            ret_tuple += (min_val,)
+        elif t[i] > max_val:
+            ret_tuple += (max_val,)
+        else:
+            ret_tuple += (t[i],)
+    return ret_tuple
+
 
 ################################
 # CONVOLUTION FUNCTION
@@ -57,12 +75,6 @@ def mitchell_netravali_fct(x,b=1/3,c=1/3):
     else:
         return 0
 
-def lanczos_fct(x,a=2):
-    if abs(x) < a:
-        return np.sinc(x) * np.sinc(x/a)
-    else:
-        return 0
-
 def smoothed_quadratic_fct(x):
     # https://zipcpu.com/dsp/2018/01/16/interpolation-is-convolution.html
     if -3/2 <= x < -1/2:
@@ -74,9 +86,15 @@ def smoothed_quadratic_fct(x):
     else:
         return 0
 
+def lanczos_fct(x,a=3):
+    if abs(x) < a:
+        return np.sinc(x) * np.sinc(x/a)
+    else:
+        return 0
+
 def better_quadratic_fct(x,a2=-2/16,b2=-1/16,c2=0,a1=1,b1=10/16,c1=0,a0=-28/16):
     # https://zipcpu.com/dsp/2018/03/30/quadratic.html
-    if -2 < x <= -3/2:
+    if -5/2 < x <= -3/2:
         return a2*(x+2)**2 + b2*(x+2) + c2
     elif -3/2 < x <= -1/2:
         return a1*(x+1)**2 + b1*(x+1) + c1
@@ -84,34 +102,88 @@ def better_quadratic_fct(x,a2=-2/16,b2=-1/16,c2=0,a1=1,b1=10/16,c1=0,a0=-28/16):
         return a0*x**2 + 1
     elif 1/2 < x <= 3/2:
         return a1*(x-1)**2 + b1*(x-1) + c1
-    elif 3/2 < x <= 2:
+    elif 3/2 < x <= 5/2:
         return a2*(x-2)**2 + b2*(x-2) + c2
     else:
         return 0
 
-def convolution_coeff(x,fct_name=bicubic_fct):
+def convolution_get_coeffs(x,filter_size=6,fct_name=bicubic_fct):
     # https://fr.wikipedia.org/wiki/Produit_de_convolution
     # f*g(x) = E f(x-m)g(m) = E f(m)g(x-m)
+    filter_center = int((filter_size-1)/2)
+    coeffs = list()
 
-    coeff = [0,0,0,0,0,0]
+    # Check fct validity
+    fct_validity = False
+    if fct_name in [nearest_neighbor_fct,linear_fct] and filter_size >= 2:
+        fct_validity = True
+    if fct_name in [bicubic_fct,mitchell_netravali_fct,smoothed_quadratic_fct] and filter_size >= 4:
+        fct_validity = True
+    if fct_name in [lanczos_fct,better_quadratic_fct] and filter_size >= 6:
+        fct_validity = True
+    if not fct_validity:
+        raise ValueError ("fct_convolution and filter_size does not match")
 
-    if not fct_name in [nearest_neighbor_fct,\
-                        linear_fct,\
-                        bicubic_fct,\
-                        mitchell_netravali_fct,\
-                        lanczos_fct,\
-                        smoothed_quadratic_fct,\
-                        better_quadratic_fct]:
-        raise ValueError (fct_name.__name__+' did not exist')
+    # Calc coeff
+    # Example with filter_size = 6 
+    # coeffs[5] = fct_name(x-3) #  3-x
+    # coeffs[4] = fct_name(x-2) #  2-x
+    # coeffs[3] = fct_name(x-1) #  1-x
+    # coeffs[2] = fct_name(x-0) #   -x
+    # coeffs[1] = fct_name(x+1) # -1-x
+    # coeffs[0] = fct_name(x+2) # -2-x
+    for i in range(filter_size):
+        coeffs.append( fct_name( x - (i-filter_center) ) )
 
-    coeff[5] = fct_name(x-3) #  3-x
-    coeff[4] = fct_name(x-2) #  2-x
-    coeff[3] = fct_name(x-1) #  1-x
-    coeff[2] = fct_name(x-0) #    x
-    coeff[1] = fct_name(x+1) # -1-x
-    coeff[0] = fct_name(x+2) # -2-x
+    return coeffs
 
-    return coeff
+def convolution_get_pixels(x,y,img_obj,filter_size=6,axis="x"):
+    pixels_value = list()
+    pixels_index = list()
+    filter_center = int((filter_size-1)/2)
+
+    # Get pixel position
+    for i in range(filter_size):
+        if axis == "x":
+            pixels_index.append( x - filter_center + i )
+        else:
+            pixels_index.append( y - filter_center + i )
+
+    # Edge management
+    for i, index in enumerate(pixels_index):
+        if index < 0:
+            index = 0
+        if axis == "x":
+            if index > img_obj.size[0]-1:
+                pixels_index[i] = img_obj.size[0]-1
+        else:
+            if index > img_obj.size[1]-1:
+                pixels_index[i] = img_obj.size[1]-1
+
+    # Get pixel
+    for index in pixels_index:
+        if axis == "x":
+            pixels_value.append( img_obj.getpixel( (index,y) ) )
+        else:
+            pixels_value.append( img_obj.getpixel( (x,index) ) )
+
+    return pixels_value
+
+def convolution_1d_fct(coeffs,pixels):
+    # Check input len equality
+    if len(coeffs) != len(pixels):
+        raise ValueError ("coeffs and pixels must have same size")
+
+    # Mult each coeff by pixel_val
+    tmp_val = list()
+    for i in range(len(coeffs)):
+        tmp_val.append( tuple(map(lambda value: value * coeffs[i], pixels[i])) )
+
+    # Sum all
+    tmp_val = functools.reduce(lambda a,b: tuple_add(a,b),tmp_val)
+
+    return tuple_round(tmp_val)
+
 
 ################################
 # INTERPOLATION FUNCTION

@@ -19,7 +19,7 @@ We want to calculate the deformation of an image along a sphere. To do this, we 
 
 To better understand the math behind it, we can first reason in two dimensions by following one of the axes of the plane and the axis where we observe the plane. Point x corresponds to the position of the pixel in the X axis that we want to deform and point x0 the center of the sphere. The segment formed by its two points is called r.
 
-![](fig_01.png)
+![](fig/fig_01.png)
 
 We deforms this segment r according to a circle and we calculate the segment projected on the axis x which we names r '.
 
@@ -29,11 +29,11 @@ sin(&theta;) = r' / rayon
 
 r' = rayon * sin(&theta;)
 
-![](fig_02.png)
+![](fig/fig_02.png)
 
 The ratio r '/ r is proportional to the deformation of x' / x
 
-![](fig_03.png)
+![](fig/fig_03.png)
 
 (x' - x0) / (x - x0) = r' / r
 
