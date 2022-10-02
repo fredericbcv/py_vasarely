@@ -5,7 +5,7 @@ from import_lib import *
 
 out_dir = "output/"
 if not os.path.isdir(out_dir):
-	os.makedirs(out_dir)
+    os.makedirs(out_dir)
 
 ################################
 # CREATE IMG

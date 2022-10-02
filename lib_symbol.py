@@ -15,7 +15,7 @@ def create_image(img_size,img_color):
 ################################
 def gaussian_fct(x,mu,sig):
     #return np.exp(-np.power(x - mu, 2.)/(2 * np.power(sig,2))) / ( sig*np.sqrt(2*np.pi) )
-    return np.exp(-np.power(x - mu, 2.)/(2 * np.power(sig/4,2)))
+    return np.exp(-np.power(x - mu, 2.)/(2 * np.power(sig,2)))
 
     #x_values = np.linspace(0,nb_symbol[0],120)
     #mp.plot(x_values, gaussian_fct(x_values,mu,sig))
@@ -24,26 +24,36 @@ def gaussian_fct(x,mu,sig):
 def gaussian_2d_fct(img_obj,symbol_size,mu,sig,max_alpha=255,inv_fct=False):
     img_size = img_obj.size
 
+    nb_symbol = (int(img_size[0]/symbol_size[0]),int(img_size[1]/symbol_size[1]))
+
     for y in range(img_size[1]):
         for x in range(img_size[0]):
             x_ = int(x/symbol_size[0])*symbol_size[0]
             y_ = int(y/symbol_size[1])*symbol_size[1]
 
             # Calc alpha
-            if y_ < (img_size[1]/2):
-                if x_ >= y_ and x_ < img_size[0]-y_:
+            # if y_ < (nb_symbol[1]/2):
+            #     if x_ >= y_ and x_ < nb_symbol[0]-y_:
+            #         alpha = gaussian_fct(y_,mu,sig)
+            #     else:
+            #         alpha = gaussian_fct(x_,mu,sig)
+            # else:
+            #     #if x_ >= img_size[1]-y_-symbol_size[1] and x_ < img_size[0]-(img_size[1]-symbol_size[1]-y_):
+            #     if x_ >= nb_symbol[1]-y_ and x_ < nb_symbol[0]-(nb_symbol[1]-1-y_):
+            #         alpha = gaussian_fct(nb_symbol[1]-1-y_,mu,sig)
+            #     else:
+            #         alpha = gaussian_fct(x_,mu,sig)
+
+            if True:
+                if x_ >= y_ :
                     alpha = gaussian_fct(y_,mu,sig)
                 else:
-                    alpha = gaussian_fct(x_+symbol_size[0]/2,mu,sig)
+                    alpha = gaussian_fct(x_,mu,sig)
             else:
-                if x_ >= img_size[1]-y_-symbol_size[1] and x_ < img_size[0]-(img_size[1]-symbol_size[1]-y_):
-                    alpha = gaussian_fct(img_size[1]-symbol_size[1]-y_,mu,sig)
-                else:
-                    alpha = gaussian_fct(x_+symbol_size[0]/2,mu,sig)
+                alpha = 0
 
             if inv_fct:
                 alpha = 1-alpha
-
             alpha = int(alpha*max_alpha)
 
             # Set new pixel
@@ -103,60 +113,4 @@ def fill_image_with_symbol(img_obj,symbol_obj):
         for x in range(nb_symbol[0]):
             # Paste symbol
             img_obj.paste(symbol_obj,(x*symbol_size[0],y*symbol_size[1]))
-
-def create_all_symbol(img,shape,nb_symbol,symbol_size,symbol_color,span,mu,sig,symbol_color2=None,max_alpha=255,alpha_fct=True,inv_alpha=False,color_fct=True,inv_color=False):
-    draw = ImageDraw.Draw(img)
-    #max_alpha = 230     # 192
-
-    for y in range(nb_symbol[1]):
-        for x in range(nb_symbol[0]):
-
-            # Set alpha
-            if alpha_fct:
-                alpha = int(alpha)
-            else:
-                alpha = max_alpha
-
-            # Set color_factor
-            if color_fct:
-                color_factor = gaussian_square(x,y,nb_symbol,inv_color,mu,sig)
-            else:
-                color_factor = 1.0
-
-            # Apply color_factor
-            tmp_symbol_color =  (   symbol_color[0]*color_factor, \
-                                    symbol_color[1]*color_factor, \
-                                    symbol_color[2]*color_factor, \
-                                    alpha \
-                                )
-
-            # Cast values
-            tmp_symbol_color =  (   int(tmp_symbol_color[0]), \
-                                    int(tmp_symbol_color[1]), \
-                                    int(tmp_symbol_color[2]), \
-                                    alpha \
-                                )
-
-            if symbol_color2 == None:
-                tmp_symbol_color2 = tmp_symbol_color
-            else:
-                # Apply color_factor
-                tmp_symbol_color2 =  (   symbol_color2[0]*color_factor, \
-                                         symbol_color2[1]*color_factor, \
-                                         symbol_color2[2]*color_factor, \
-                                         alpha \
-                                     )
-
-                # Cast values
-                tmp_symbol_color2 =  (   int(tmp_symbol_color2[0]), \
-                                         int(tmp_symbol_color2[1]), \
-                                         int(tmp_symbol_color2[2]), \
-                                        alpha \
-                                     )
-
-            # Set symbol format
-            symbol_format = ( symbol_size, tmp_symbol_color, tmp_symbol_color2 )
-
-            # Adding symbol
-            create_symbol(draw,shape,(x,y),symbol_format,span)
 
