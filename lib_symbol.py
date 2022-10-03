@@ -31,26 +31,30 @@ def gaussian_2d_fct(img_obj,symbol_size,mu,sig,max_alpha=255,inv_fct=False):
             x_ = int(x/symbol_size[0])*symbol_size[0]
             y_ = int(y/symbol_size[1])*symbol_size[1]
 
-            # Calc alpha
-            # if y_ < (nb_symbol[1]/2):
-            #     if x_ >= y_ and x_ < nb_symbol[0]-y_:
-            #         alpha = gaussian_fct(y_,mu,sig)
-            #     else:
-            #         alpha = gaussian_fct(x_,mu,sig)
-            # else:
-            #     #if x_ >= img_size[1]-y_-symbol_size[1] and x_ < img_size[0]-(img_size[1]-symbol_size[1]-y_):
-            #     if x_ >= nb_symbol[1]-y_ and x_ < nb_symbol[0]-(nb_symbol[1]-1-y_):
-            #         alpha = gaussian_fct(nb_symbol[1]-1-y_,mu,sig)
-            #     else:
-            #         alpha = gaussian_fct(x_,mu,sig)
+            if y < img_size[1]/2:
+                if x_ >= y_:
+                    if x_ < img_size[0] - y_:
+                        alpha = gaussian_fct(y_,mu,sig)
+                    else:
+                        alpha = gaussian_fct((nb_symbol[0]-1)*symbol_size[0]-x_,mu,sig)
 
-            if True:
-                if x_ >= y_ :
-                    alpha = gaussian_fct(y_,mu,sig)
                 else:
-                    alpha = gaussian_fct(x_,mu,sig)
+                    if y_ < img_size[1] - x_:
+                        alpha = gaussian_fct(x_,mu,sig)
+                    else:
+                        alpha = gaussian_fct((nb_symbol[1]-1)*symbol_size[1]-y_,mu,sig)
+
             else:
-                alpha = 0
+                if x_ >= img_size[1]-y_:
+                    if x < img_size[0] - (img_size[1]-y_):
+                        alpha = gaussian_fct((nb_symbol[1]-1)*symbol_size[1]-y_,mu,sig)
+                    else:
+                        alpha = gaussian_fct(x_,mu,sig)
+                else:
+                    if img_size[1]-y_ < img_size[1] - x_:
+                        alpha = gaussian_fct((nb_symbol[0]-1)*symbol_size[0]-x_,mu,sig)
+                    else:
+                        alpha = gaussian_fct(y_,mu,sig)
 
             if inv_fct:
                 alpha = 1-alpha
