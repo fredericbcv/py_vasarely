@@ -9,7 +9,7 @@ if not os.path.isdir(out_dir):
 ################################
 # CREATE IMG
 ################################
-img_size = (500,1000)
+img_size = (1000,1000)
 
 # Create img
 bg_img       = create_image(img_size,(0,39,48,255))
@@ -75,6 +75,7 @@ bg_img.save(out_dir+'vasa1.png')
 new_img = bg_img
 #new_img = sphere_engine(new_img, (0,             0             ,0), img_size[0]/2 * 2**0.5, 1.5)
 new_img = sphere_engine(new_img, (img_size[0]/2, 0             ,0), img_size[0]/2, 1)
+new_img = sphere_engine(new_img, (img_size[0]/2, img_size[1]-1 ,0), img_size[0]/2, 1)
 #new_img = sphere_engine(new_img, (img_size[0]-1, img_size[1]-1 ,0), img_size[0]/2 * 2**0.5, 1.5)
 #new_img = sphere_engine(new_img, (0,             img_size[1]/2 ,0), img_size[0]/2, 1)
 #new_img = sphere_engine(new_img, (img_size[0]/2, img_size[1]/2 ,0), img_size[0]/2, 1)

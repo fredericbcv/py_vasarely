@@ -31,6 +31,7 @@ def gaussian_2d_fct(img_obj,symbol_size,mu,sig,max_alpha=255,inv_fct=False):
             x_ = int(x/symbol_size[0])*symbol_size[0]
             y_ = int(y/symbol_size[1])*symbol_size[1]
 
+            # Treat half of img to support ratio != 1
             if y < img_size[1]/2:
                 if x_ >= y_:
                     if x_ < img_size[0] - y_:
@@ -45,6 +46,7 @@ def gaussian_2d_fct(img_obj,symbol_size,mu,sig,max_alpha=255,inv_fct=False):
                         alpha = gaussian_fct((nb_symbol[1]-1)*symbol_size[1]-y_,mu,sig)
 
             else:
+                # Formula are inverted from above
                 if x_ >= img_size[1]-y_:
                     if x < img_size[0] - (img_size[1]-y_):
                         alpha = gaussian_fct((nb_symbol[1]-1)*symbol_size[1]-y_,mu,sig)
