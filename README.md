@@ -5,10 +5,27 @@
 
 Script permettant de reproduire une sérigraphie inspirée de Vasarely
 
+## Exemples
+
+Toutes les étapes sont générés par le script.
+
+![](examples/vasa/vasa_example.png)
+
+![](examples/grid1_convolution/grid_example.png)
+
+![](examples/sphere1_bilinear_interpol/sphere1_bilinear_interpol_example.png)
+
+<!-- ![](examples/sphere1_convolution/sphere1_example.png) -->
+
 ## Usage 
 
-`python vasa.py`
-`python sphere.py`
+`python generate_vasa.py`
+
+`python generate_grid1_convolution.py`
+
+`python generate_sphere1_bilinear_interpol.py`
+
+`python generate_sphere1_convolution.py`
 
 ## Description
 
