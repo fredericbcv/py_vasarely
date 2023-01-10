@@ -48,7 +48,9 @@ def tuple_cast(t,min_val=0,max_val=255):
 ################################
 # https://clouard.users.greyc.fr/Pantheon/experiments/rescaling/index-fr.html
 def nearest_neighbor_fct(x):
-    if x > 0:
+    if x >= 0.5:
+        return 0;
+    elif -0.5 <= x < 0.5:
         return 1
     else:
         return 0
