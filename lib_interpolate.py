@@ -101,9 +101,9 @@ def better_quadratic_fct(x,a2=-2/16,b2=-1/16,c2=0,a1=1,b1=10/16,c1=0,a0=-28/16):
     elif -1/2 < x <= 1/2:
         return a0*x**2 + 1
     elif 1/2 < x <= 3/2:
-        return a1*(x-1)**2 + b1*(x-1) + c1
+        return a1*(-x+1)**2 + b1*(-x+1) + c1
     elif 3/2 < x <= 5/2:
-        return a2*(x-2)**2 + b2*(x-2) + c2
+        return a2*(-x+2)**2 + b2*(-x+2) + c2
     else:
         return 0
 
